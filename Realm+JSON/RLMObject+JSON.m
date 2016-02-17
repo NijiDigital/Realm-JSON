@@ -162,10 +162,11 @@ static NSInteger const kCreateBatchSize = 100;
 
 	for (NSString *dictionaryKeyPath in mapping) {
 		NSString *objectKeyPath = mapping[dictionaryKeyPath];
-
+        
 		id value = [dictionary valueForKeyPath:dictionaryKeyPath];
-
+        
 		if (value) {
+            BOOL isNull = [value isKindOfClass:[NSNull class]];
 			Class propertyClass = [[self class] mc_classForPropertyKey:objectKeyPath];
 
 			NSValueTransformer *transformer = [[self class] mc_transformerForPropertyKey:objectKeyPath];
@@ -173,7 +174,7 @@ static NSInteger const kCreateBatchSize = 100;
 				value = [transformer transformedValue:value];
 			}
 			else if ([propertyClass isSubclassOfClass:[RLMObject class]]) {
-				if (!value || [value isEqual:[NSNull null]]) {
+				if (!value || isNull) {
 					continue;
 				}
 
@@ -181,7 +182,7 @@ static NSInteger const kCreateBatchSize = 100;
 					value = [propertyClass mc_createObjectFromJSONDictionary:value];
 				}
 			}
-			else if ([propertyClass isSubclassOfClass:[RLMArray class]]) {
+			else if (!isNull && [propertyClass isSubclassOfClass:[RLMArray class]]) {
 				RLMProperty *property = [self mc_propertyForPropertyKey:objectKeyPath];
 				Class elementClass = [RLMSchema classForString: property.objectClassName];
 
@@ -191,21 +192,25 @@ static NSInteger const kCreateBatchSize = 100;
 				}
 				value = [array copy];
 			}
-
-			if ([objectKeyPath isEqualToString:@"self"]) {
-				return value;
-			}
-
-			NSArray *keyPathComponents = [objectKeyPath componentsSeparatedByString:@"."];
-			id currentDictionary = result;
-			for (NSString *component in keyPathComponents) {
-				if ([currentDictionary valueForKey:component] == nil) {
-					[currentDictionary setValue:[NSMutableDictionary dictionary] forKey:component];
-				}
-				currentDictionary = [currentDictionary valueForKey:component];
-			}
-
-			[result setValue:value forKeyPath:objectKeyPath];
+            else if (isNull) {
+                // Let Realm apply potential default value
+                continue;
+            }
+            
+            if ([objectKeyPath isEqualToString:@"self"]) {
+                return value;
+            }
+            
+            NSArray *keyPathComponents = [objectKeyPath componentsSeparatedByString:@"."];
+            id currentDictionary = result;
+            for (NSString *component in keyPathComponents) {
+                if ([currentDictionary valueForKey:component] == nil) {
+                    [currentDictionary setValue:[NSMutableDictionary dictionary] forKey:component];
+                }
+                currentDictionary = [currentDictionary valueForKey:component];
+            }
+            
+            [result setValue:value forKeyPath:objectKeyPath];
 		}
 	}
 
