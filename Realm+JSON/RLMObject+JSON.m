@@ -76,6 +76,12 @@ static NSInteger const kCreateBatchSize = 100;
     return [result copy];
 }
 
++ (instancetype)createInRealm:(RLMRealm *)realm withJSONDictionary:(NSDictionary *)dictionary {
+    id object = [self mc_createObjectFromJSONDictionary:dictionary];
+    RLMObject *rlmObject = [self createInRealm:realm withValue:object];
+    return rlmObject;
+}
+
 + (instancetype)createOrUpdateInRealm:(RLMRealm *)realm withJSONDictionary:(NSDictionary *)dictionary {
 	return [self createOrUpdateInRealm:realm withValue:[self mc_createObjectFromJSONDictionary:dictionary]];
 }
