@@ -198,7 +198,7 @@ static NSInteger const kCreateBatchSize = 100;
 				}
 				value = [array copy];
 			}
-            else if (isNull) {
+            if (!value || isNull) {
                 // Let Realm apply potential default value
                 continue;
             }
