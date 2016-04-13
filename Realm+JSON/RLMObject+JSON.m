@@ -178,6 +178,11 @@ static NSInteger const kCreateBatchSize = 100;
 			NSValueTransformer *transformer = [[self class] mc_transformerForPropertyKey:objectKeyPath];
 			if (transformer) {
 				value = [transformer transformedValue:value];
+				if (!value)
+				{
+                    //APPLY DEFAULT VALUE
+                    value = [transformer transformedValue:[NSNull null]];
+                }
 				isNull = value == nil;
 			}
 			else if ([propertyClass isSubclassOfClass:[RLMObject class]]) {
