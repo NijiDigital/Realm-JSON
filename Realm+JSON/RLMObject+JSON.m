@@ -183,7 +183,7 @@ static NSInteger const kCreateBatchSize = 100;
                     //APPLY DEFAULT VALUE
                     value = [transformer transformedValue:[NSNull null]];
                 }
-				isNull = value == nil;
+				isNull = value == nil; // Still need to check it: could still be nil if trying to transform to NSString.
 			}
 			else if ([propertyClass isSubclassOfClass:[RLMObject class]]) {
 				if (!value || isNull) {
