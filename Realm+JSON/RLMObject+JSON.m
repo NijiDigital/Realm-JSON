@@ -194,15 +194,20 @@ static NSInteger const kCreateBatchSize = 100;
 					value = [propertyClass mc_createObjectFromJSONDictionary:value];
 				}
 			}
-			else if (!isNull && [propertyClass isSubclassOfClass:[RLMArray class]]) {
-				RLMProperty *property = [self mc_propertyForPropertyKey:objectKeyPath];
-				Class elementClass = [RLMSchema classForString: property.objectClassName];
+			else if ([propertyClass isSubclassOfClass:[RLMArray class]]) {
+				if (!isNull) {
+					RLMProperty *property = [self mc_propertyForPropertyKey:objectKeyPath];
+				    Class elementClass = [RLMSchema classForString: property.objectClassName];
 
-				NSMutableArray *array = [NSMutableArray array];
-				for (id item in(NSArray*) value) {
-					[array addObject:[elementClass mc_createObjectFromJSONDictionary:item]];
+				    NSMutableArray *array = [NSMutableArray array];
+				    for (id item in(NSArray*) value) {
+					    [array addObject:[elementClass mc_createObjectFromJSONDictionary:item]];
+				    }
+				    value = [array copy];
+				} else {
+					value = [NSArray array];
+					isNull = NO;
 				}
-				value = [array copy];
 			}
             if (!value || isNull) {
                 // Let Realm apply potential default value
